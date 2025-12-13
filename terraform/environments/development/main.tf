@@ -27,3 +27,10 @@ module "database" {
   multi_az       = false           # 開発用なのでSingle-AZ
   db_password    = var.db_password # 変数から渡す
 }
+
+module "storage" {
+  source = "../../modules/storage"
+
+  name          = "develop.${data.aws_caller_identity.current.account_id}.todo-app"
+  force_destroy = true # 開発環境なのでterraform destroyで消せるようにする
+}
