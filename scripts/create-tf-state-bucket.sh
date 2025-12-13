@@ -114,7 +114,8 @@ POLICY_JSON=$(cat <<EOF
       "Action": [
         "s3:ListBucket",
         "s3:GetObject",
-        "s3:PutObject"
+        "s3:PutObject",
+        "s3:DeleteObject"
       ],
       "Resource": [
         "arn:aws:s3:::${BUCKET_NAME}",
