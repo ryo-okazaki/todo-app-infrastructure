@@ -1,0 +1,117 @@
+graph TB
+%% --- スタイル定義 ---
+    classDef region fill:#fff,stroke:#879596,stroke-dasharray: 5 5,color:#000
+    classDef vpc fill:#f2fcfe,stroke:#248814,stroke-width:2px,color:#000
+    classDef az fill:#fff,stroke:#d86613,stroke-dasharray: 3 3,color:#000
+    classDef publicSubnet fill:#e7f2f1,stroke:#00a78e,color:#000
+    classDef privateSubnet fill:#fdf3e5,stroke:#d86613,color:#000
+    classDef service fill:#fff,stroke:#232f3e,stroke-width:2px,color:#000
+    classDef dns fill:#e6f7ff,stroke:#0073bb,stroke-width:2px,color:#000
+
+%% --- 外部領域 ---
+    Internet((Internet))
+
+%% --- DNS & Global Layer ---
+subgraph DNS_Layer [Global / DNS Layer]
+style DNS_Layer fill:#fff,stroke:none
+R53["Route 53 Hosted Zone</br>(sub.example.com)"]:::dns
+ACM_Global["ACM Certificate</br>(us-east-1 for CF)"]:::service
+end
+
+%% --- AWS Region ---
+subgraph Region ["AWS Region (ap-northeast-1)"]
+class Region region
+
+%% グローバル/リージョナルリソース (VPC外)
+subgraph Edge_Services [Edge & Regional Services]
+style Edge_Services fill:#fff,stroke:none
+CF[CloudFront]:::service
+S3_Assets[("S3 (Assets)")]:::service
+S3_Logs[("S3 (Logs/User)")]:::service
+ECR[ECR]:::service
+SES["SES (Email)"]:::service
+ACM_Regional["ACM Certificate</br>(Regional for ALB)"]:::service
+end
+
+%% --- VPC ---
+subgraph VPC ["VPC (10.0.0.0/16)"]
+class VPC vpc
+IGW[Internet Gateway]:::service
+
+%% --- AZ 1 ---
+subgraph AZ1 [Availability Zone 1a]
+class AZ1 az
+
+%% Public Subnet 1
+subgraph Pub_Sub1 ["Public Subnet (10.0.1.0/24)"]
+class Pub_Sub1 publicSubnet
+ALB_1[ALB Node]:::service
+NAT_1[NAT Gateway]:::service
+end
+
+%% Private Subnet 1
+subgraph Priv_Sub1 ["Private Subnet (10.0.10.0/24)"]
+class Priv_Sub1 privateSubnet
+ECS_FE_1["ECS Task (Next.js)"]:::service
+ECS_BE_1["ECS Task (Node.js)"]:::service
+RDS_Primary[("RDS (Primary)")]:::service
+end
+end
+
+%% --- AZ 2 ---
+subgraph AZ2 [Availability Zone 1c]
+class AZ2 az
+
+%% Public Subnet 2
+subgraph Pub_Sub2 ["Public Subnet (10.0.2.0/24)"]
+class Pub_Sub2 publicSubnet
+ALB_2[ALB Node]:::service
+NAT_2[NAT Gateway]:::service
+end
+
+%% Private Subnet 2
+subgraph Priv_Sub2 ["Private Subnet (10.0.20.0/24)"]
+class Priv_Sub2 privateSubnet
+ECS_FE_2["ECS Task (Next.js)"]:::service
+ECS_BE_2["ECS Task (Node.js)"]:::service
+RDS_Standby[("RDS (Standby)")]:::service
+end
+end
+end
+end
+
+%% --- ネットワークフロー ---
+
+%% 1. DNS Resolution & Entry
+Internet -.->|DNS Query| R53
+R53 -.->|Alias Record| CF
+Internet ==>|HTTPS Traffic| CF
+
+%% Certificate Association
+CF -.- ACM_Global
+ALB_1 & ALB_2 -.- ACM_Regional
+
+%% 2. Ingress to VPC
+CF ==> IGW
+IGW ==> ALB_1 & ALB_2
+ALB_1 & ALB_2 ==> ECS_FE_1 & ECS_FE_2
+
+%% 3. Internal Flow
+ECS_FE_1 -.->|Internal API| ALB_1
+ECS_FE_2 -.->|Internal API| ALB_2
+ALB_1 -.-> ECS_BE_1
+ALB_2 -.-> ECS_BE_2
+ECS_BE_1 & ECS_BE_2 ==> RDS_Primary
+RDS_Primary -.->|Repulication| RDS_Standby
+
+%% 4. Egress (Outbound to AWS Services & Internet)
+ECS_FE_1 & ECS_BE_1 -.-> NAT_1
+ECS_FE_2 & ECS_BE_2 -.-> NAT_2
+NAT_1 & NAT_2 -.-> IGW
+IGW -.-> Internet
+
+%% 5. Access to Regional Services via NAT
+NAT_1 & NAT_2 -.-> SES & S3_Assets & S3_Logs & ECR
+
+%% CloudFront連携
+CF -.-> S3_Assets
