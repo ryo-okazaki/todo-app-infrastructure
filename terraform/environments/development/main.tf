@@ -47,3 +47,30 @@ module "domain" {
     aws.dns_account = aws.dns_account # 追加
   }
 }
+
+module "load_balancer" {
+  source = "../../modules/load_balancer"
+
+  name = "todo-app-dev"
+
+  vpc_id            = module.network.vpc_id
+  public_subnet_ids = module.network.public_subnet_ids
+
+  # domainモジュールで作った証明書
+  acm_certificate_arn = module.domain.alb_certificate_arn
+
+  # storageモジュールで作ったログ用バケット
+  access_logs_bucket_id = module.storage.s3_logs_bucket_id
+}
+
+resource "aws_route53_record" "alias" {
+  zone_id = module.domain.zone_id # domainモジュールのOutput
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = module.load_balancer.alb_dns_name
+    zone_id                = module.load_balancer.alb_zone_id
+    evaluate_target_health = true
+  }
+}
