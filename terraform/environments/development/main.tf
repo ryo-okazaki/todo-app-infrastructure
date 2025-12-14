@@ -34,3 +34,16 @@ module "storage" {
   name          = "develop.${data.aws_caller_identity.current.account_id}.todo-app"
   force_destroy = true # 開発環境なのでterraform destroyで消せるようにする
 }
+
+module "domain" {
+  source = "../../modules/domain"
+
+  domain_name    = var.domain_name
+  parent_zone_id = var.parent_zone_id # ドメイン管理アカウントにある親ゾーンID
+
+  providers = {
+    aws             = aws
+    aws.virginia    = aws.virginia
+    aws.dns_account = aws.dns_account # 追加
+  }
+}
