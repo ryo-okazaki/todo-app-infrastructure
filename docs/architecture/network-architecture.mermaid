@@ -15,8 +15,8 @@ graph TB
 %% --- DNS & Global Layer ---
     subgraph DNS_Layer ["Global / DNS Layer"]
         style DNS_Layer fill:#fff,stroke:none
-        R53["Route 53 Hosted Zone</br>(sub.example.com)"]:::dns
-        ACM_Global["ACM Certificate</br>(us-east-1 for CF)"]:::service
+        R53["Route 53 Hosted Zone (sub.example.com)"]:::dns
+        ACM_Global["ACM Certificate (us-east-1 for CF)"]:::service
     end
 
 %% --- AWS Region ---
@@ -31,7 +31,7 @@ graph TB
             S3_Logs[("S3 (Logs/User)")]:::service
             ECR["ECR"]:::service
             SES["SES (Email)"]:::service
-            ACM_Regional["ACM Certificate</br>(Regional for ALB)"]:::service
+            ACM_Regional["ACM Certificate (Regional for ALB)"]:::service
         end
 
     %% --- VPC ---
@@ -53,8 +53,8 @@ graph TB
             %% Private Subnet 1
                 subgraph Priv_Sub1 ["Private Subnet (10.0.10.0/24)"]
                     class Priv_Sub1 privateSubnet
-                    ECS_FE_1["ECS Task (Next.js)</br>+ SC Envoy Proxy"]:::service
-                    ECS_BE_1["ECS Task (Express)</br>+ SC Envoy Proxy"]:::service
+                    ECS_FE_1["ECS Task (Next.js) + SC Envoy Proxy"]:::service
+                    ECS_BE_1["ECS Task (Express) + SC Envoy Proxy"]:::service
                     RDS_Primary[("RDS (Primary)")]:::service
                 end
             end
@@ -73,8 +73,8 @@ graph TB
             %% Private Subnet 2
                 subgraph Priv_Sub2 ["Private Subnet (10.0.20.0/24)"]
                     class Priv_Sub2 privateSubnet
-                    ECS_FE_2["ECS Task (Next.js)</br>+ SC Envoy Proxy"]:::service
-                    ECS_BE_2["ECS Task (Express)</br>+ SC Envoy Proxy"]:::service
+                    ECS_FE_2["ECS Task (Next.js) + SC Envoy Proxy"]:::service
+                    ECS_BE_2["ECS Task (Express) + SC Envoy Proxy"]:::service
                     RDS_Standby[("RDS (Standby)")]:::service
                 end
             end
@@ -84,9 +84,9 @@ graph TB
 %% --- ネットワークフロー ---
 
 %% 1. DNS Resolution & Entry
-    Internet -.->|DNS Query| R53
-    R53 -.->|Alias Record| CF
-    Internet ==>|HTTPS Traffic| CF
+    Internet -.->|"DNS Query"| R53
+    R53 -.->|"Alias Record"| CF
+    Internet ==>|"HTTPS Traffic"| CF
 
 %% Certificate Association
     CF -.- ACM_Global
@@ -95,17 +95,18 @@ graph TB
 %% 2. Ingress to VPC (Next.jsのみ公開)
     CF ==> IGW
     IGW ==> ALB_1 & ALB_2
-    ALB_1 & ALB_2 ==>|"Target Group: Next.js"| ECS_FE_1 & ECS_FE_2
+    ALB_1 & ALB_2 ==>|"Target Group: Next.js (Port 3000)"| ECS_FE_1 & ECS_FE_2
 
 %% 3. Internal Flow (Service Connect)
-%% ★ここを修正しました
-    ECS_FE_1 == "Service Connect: http://backend:8080" ==o ECS_BE_1
-    ECS_FE_2 == "Service Connect: http://backend:8080" ==o ECS_BE_2
-%%    linkStyle 9,10 stroke:#9370db,stroke-width:3px,color:#4b0082;
+%% Next.jsからExpressへの通信はService Connect経由
+    ECS_FE_1 == "Service Connect (http://backend:8080)" ==> ECS_BE_1
+    ECS_FE_2 == "Service Connect (http://backend:8080)" ==> ECS_BE_2
+
+    linkStyle 11,12 stroke:#9370db,stroke-width:3px,color:#4b0082
 
 %% DB Connection
     ECS_BE_1 & ECS_BE_2 ==> RDS_Primary
-    RDS_Primary -.->|Replication| RDS_Standby
+    RDS_Primary -.->|"Replication"| RDS_Standby
 
 %% 4. Egress (Outbound to AWS Services & Internet)
     ECS_FE_1 & ECS_BE_1 -.-> NAT_1
