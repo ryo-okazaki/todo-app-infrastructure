@@ -8,12 +8,11 @@ graph TB
     classDef privateSubnet fill:#fdf3e5,stroke:#d86613,color:#000
     classDef service fill:#fff,stroke:#232f3e,stroke-width:2px,color:#000
     classDef dns fill:#e6f7ff,stroke:#0073bb,stroke-width:2px,color:#000
-    classDef scLink stroke:#9370db,stroke-width:3px,color:#4b0082,stroke-dasharray: 0
 
-%% --- 外部領域 ---
+%% --- 外部 ---
     Internet(("Internet"))
 
-%% --- Account C: Network Account (Domain Management) ---
+%% --- Account C: Domain Account ---
     subgraph Account_C ["AWS Account C (Network)"]
         class Account_C account
         R53_Root["Route 53 Parent Zone (ryo-okazaki.com)"]:::dns
@@ -27,42 +26,55 @@ graph TB
         ACM_B["ACM Certificate (Regional)"]:::service
         SES_B["SES (Auth Email)"]:::service
         ECR_B["ECR (Keycloak Images)"]:::service
+        Secrets_B["Secrets Manager (KC Params)"]:::service
 
         subgraph VPC_B ["VPC (10.1.0.0/16)"]
             class VPC_B vpc
             IGW_B["Internet Gateway"]:::service
 
-            subgraph Pub_Sub_B ["Public Subnet"]
-                class Pub_Sub_B publicSubnet
-                ALB_B["Public ALB (Keycloak)"]:::service
+            subgraph AZ1_B ["Availability Zone 1a"]
+                class AZ1_B az
+                subgraph Pub_Sub_B1 ["Public Subnet"]
+                    class Pub_Sub_B1 publicSubnet
+                    ALB_B1["ALB Node"]:::service
+                    NAT_B1["NAT Gateway"]:::service
+                end
+                subgraph Priv_Sub_B1 ["Private Subnet"]
+                    class Priv_Sub_B1 privateSubnet
+                    KC_Fargate_1["ECS Fargate (Keycloak)"]:::service
+                    RDS_KC_Primary[("RDS Primary (Keycloak)")]:::service
+                end
             end
 
-            subgraph Priv_Sub_B ["Private Subnet"]
-                class Priv_Sub_B privateSubnet
-                KC_ECS["ECS Task (Keycloak)"]:::service
-                RDS_KC[("RDS (Keycloak DB)")]:::service
+            subgraph AZ2_B ["Availability Zone 1c"]
+                class AZ2_B az
+                subgraph Pub_Sub_B2 ["Public Subnet"]
+                    class Pub_Sub_B2 publicSubnet
+                    ALB_B2["ALB Node"]:::service
+                    NAT_B2["NAT Gateway"]:::service
+                end
+                subgraph Priv_Sub_B2 ["Private Subnet"]
+                    class Priv_Sub_B2 privateSubnet
+                    KC_Fargate_2["ECS Fargate (Keycloak)"]:::service
+                    RDS_KC_Standby[("RDS Standby (Keycloak)")]:::service
+                end
             end
         end
     end
 
-%% --- Account A: App Account (Main Service) ---
+%% --- Account A: App Account ---
     subgraph Account_A ["AWS Account A (App)"]
         class Account_A account
 
-        subgraph DNS_Layer_A ["Global / DNS Layer"]
-            style DNS_Layer_A fill:#fff,stroke:none
+        subgraph Edge_A ["Edge & Regional Services"]
+            style Edge_A fill:#fff,stroke:none
             R53_Sub_A["Route 53 Hosted Zone (app.ryo-okazaki.com)"]:::dns
-            ACM_Global["ACM Certificate (us-east-1 for CF)"]:::service
-        end
-
-        subgraph Edge_Services_A ["Edge & Regional Services"]
-            style Edge_Services_A fill:#fff,stroke:none
             CF["CloudFront"]:::service
             S3_Assets[("S3 (Assets)")]:::service
-            S3_Logs[("S3 (Logs/User)")]:::service
             ECR_A["ECR (App Images)"]:::service
             SES_A["SES (App Email)"]:::service
-            ACM_Regional["ACM Certificate (Regional for ALB)"]:::service
+            Secrets_A["Secrets Manager (App Params)"]:::service
+            ACM_A["ACM (Global/Regional)"]:::service
         end
 
         subgraph VPC_A ["VPC (10.0.0.0/16)"]
@@ -71,31 +83,31 @@ graph TB
 
             subgraph AZ1_A ["Availability Zone 1a"]
                 class AZ1_A az
-                subgraph Pub_Sub1_A ["Public Subnet (10.0.1.0/24)"]
-                    class Pub_Sub1_A publicSubnet
-                    ALB_1["ALB Node"]:::service
-                    NAT_1["NAT Gateway"]:::service
+                subgraph Pub_Sub_A1 ["Public Subnet"]
+                    class Pub_Sub_A1 publicSubnet
+                    ALB_A1["ALB Node"]:::service
+                    NAT_A1["NAT Gateway"]:::service
                 end
-                subgraph Priv_Sub1_A ["Private Subnet (10.0.10.0/24)"]
-                    class Priv_Sub1_A privateSubnet
-                    ECS_FE_1["ECS Task (Next.js) + SC Envoy Proxy"]:::service
-                    ECS_BE_1["ECS Task (Express) + SC Envoy Proxy"]:::service
-                    RDS_Primary[("RDS (Primary)")]:::service
+                subgraph Priv_Sub_A1 ["Private Subnet"]
+                    class Priv_Sub_A1 privateSubnet
+                    FE_Fargate_1["ECS Fargate (Next.js) + SC"]:::service
+                    BE_Fargate_1["ECS Fargate (Express) + SC"]:::service
+                    RDS_App_Primary[("RDS Primary (App)")]:::service
                 end
             end
 
             subgraph AZ2_A ["Availability Zone 1c"]
                 class AZ2_A az
-                subgraph Pub_Sub2_A ["Public Subnet (10.0.2.0/24)"]
-                    class Pub_Sub2_A publicSubnet
-                    ALB_2["ALB Node"]:::service
-                    NAT_2["NAT Gateway"]:::service
+                subgraph Pub_Sub_A2 ["Public Subnet"]
+                    class Pub_Sub_A2 publicSubnet
+                    ALB_A2["ALB Node"]:::service
+                    NAT_A2["NAT Gateway"]:::service
                 end
-                subgraph Priv_Sub2_A ["Private Subnet (10.0.20.0/24)"]
-                    class Priv_Sub2_A privateSubnet
-                    ECS_FE_2["ECS Task (Next.js) + SC Envoy Proxy"]:::service
-                    ECS_BE_2["ECS Task (Express) + SC Envoy Proxy"]:::service
-                    RDS_Standby[("RDS (Standby)")]:::service
+                subgraph Priv_Sub_A2 ["Private Subnet"]
+                    class Priv_Sub_A2 privateSubnet
+                    FE_Fargate_2["ECS Fargate (Next.js) + SC"]:::service
+                    BE_Fargate_2["ECS Fargate (Express) + SC"]:::service
+                    RDS_App_Standby[("RDS Standby (App)")]:::service
                 end
             end
         end
@@ -103,41 +115,30 @@ graph TB
 
 %% --- ネットワークフロー ---
 
-%% 1. DNS & Domain Delegation
-    R53_Root -.->|"NS Record Delegation"| R53_Sub_A
-    R53_Root -.->|"NS Record Delegation"| R53_Sub_B
-    Internet -.->|"DNS Query"| R53_Root
+%% 1. ドメイン
+    R53_Root -.->|"NS Delegation"| R53_Sub_A & R53_Sub_B
 
-%% 2. User Entry to Account A
-    Internet ==>|"HTTPS (app.ryo-okazaki.com)"| CF
-    CF ==> IGW_A ==> ALB_1 & ALB_2
-    ALB_1 & ALB_2 ==>|"Target Group: Next.js"| ECS_FE_1 & ECS_FE_2
+%% 2. ユーザーアクセス
+    Internet ==>|"HTTPS (app.ryo-okazaki.com)"| CF ==> IGW_A ==> ALB_A1 & ALB_A2
+    ALB_A1 & ALB_A2 ==> FE_Fargate_1 & FE_Fargate_2
 
-%% 3. Internal Flow (Service Connect)
-    ECS_FE_1 == "Service Connect (http://backend:8080)" ==> ECS_BE_1
-    ECS_FE_2 == "Service Connect (http://backend:8080)" ==> ECS_BE_2
+    Internet ==>|"HTTPS (auth.ryo-okazaki.com)"| IGW_B ==> ALB_B1 & ALB_B2
+    ALB_B1 & ALB_B2 ==> KC_Fargate_1 & KC_Fargate_2
+
+%% 3. コンテナ間通信 (Service Connect)
+    FE_Fargate_1 == "Service Connect" ==> BE_Fargate_1
+    FE_Fargate_2 == "Service Connect" ==> BE_Fargate_2
     linkStyle 10,11 stroke:#9370db,stroke-width:3px,color:#4b0082
 
-%% 4. Auth Flow & Access to Keycloak
-    Internet ==>|"HTTPS (auth.ryo-okazaki.com)"| IGW_B ==> ALB_B
-    ALB_B ==> KC_ECS
+%% 4. 認証連携 (Account A -> B Public)
+    FE_Fargate_1 & BE_Fargate_1 -.-> NAT_A1
+    FE_Fargate_2 & BE_Fargate_2 -.-> NAT_A2
+    NAT_A1 & NAT_A2 -.->|"Internet"| ALB_B1 & ALB_B2
 
-%% Account AのコンテナからKeycloak ALBへのパブリックアクセス
-    ECS_FE_1 & ECS_BE_1 -.-> NAT_1
-    ECS_FE_2 & ECS_BE_2 -.-> NAT_2
-    NAT_1 & NAT_2 -.->|"Internet"| ALB_B
+%% 5. 秘匿情報・イメージ・メール (Egress)
+    FE_Fargate_1 & BE_Fargate_1 -.-> Secrets_A & ECR_A & SES_A
+    KC_Fargate_1 & KC_Fargate_2 -.-> Secrets_B & ECR_B & SES_B
 
-%% 5. DB & Storage
-    ECS_BE_1 & ECS_BE_2 ==> RDS_Primary
-    RDS_Primary -.->|"Replication"| RDS_Standby
-    KC_ECS ==> RDS_KC
-    CF -.-> S3_Assets
-
-%% 6. Managed Services (SES, ECR, etc.)
-    NAT_1 & NAT_2 -.-> SES_A & S3_Logs & ECR_A
-    KC_ECS -.-> SES_B & ECR_B
-
-%% 7. Certificates
-    CF -.- ACM_Global
-    ALB_1 & ALB_2 -.- ACM_Regional
-    ALB_B -.- ACM_B
+%% 6. データベース同期
+    RDS_App_Primary -.->|"Replication"| RDS_App_Standby
+    RDS_KC_Primary -.->|"Replication"| RDS_KC_Standby
