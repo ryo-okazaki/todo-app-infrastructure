@@ -8,6 +8,8 @@ graph TB
     classDef privateSubnet fill:#fdf3e5,stroke:#d86613,color:#000
     classDef service fill:#fff,stroke:#232f3e,stroke-width:2px,color:#000
     classDef dns fill:#e6f7ff,stroke:#0073bb,stroke-width:2px,color:#000
+    classDef cdn fill:#8c4fff,stroke:#fff,stroke-width:2px,color:#fff
+    classDef storage fill:#3f8624,stroke:#fff,stroke-width:2px,color:#fff
 
 %% --- 外部 ---
     Internet(("Internet"))
@@ -15,14 +17,14 @@ graph TB
 %% --- Account C: Domain Account ---
     subgraph Account_C ["AWS Account C (Network)"]
         class Account_C account
-        R53_Root["Route 53 Parent Zone (ryo-okazaki.com)"]:::dns
+        R53_Root["Route 53 Parent Zone<br/>(ryo-okazaki.com)"]:::dns
     end
 
 %% --- Account B: Auth Account (Keycloak) ---
     subgraph Account_B ["AWS Account B (Auth)"]
         class Account_B account
 
-        R53_Sub_B["Route 53 Hosted Zone (auth.ryo-okazaki.com)"]:::dns
+        R53_Sub_B["Route 53 Hosted Zone<br/>(auth.ryo-okazaki.com)"]:::dns
         ACM_B["ACM Certificate (Regional)"]:::service
         SES_B["SES (Auth Email)"]:::service
         ECR_B["ECR (Keycloak Images)"]:::service
@@ -30,7 +32,6 @@ graph TB
 
         subgraph VPC_B ["VPC (10.1.0.0/16)"]
             class VPC_B vpc
-            IGW_B["Internet Gateway"]:::service
 
             subgraph AZ1_B ["Availability Zone 1a"]
                 class AZ1_B az
@@ -41,8 +42,8 @@ graph TB
                 end
                 subgraph Priv_Sub_B1 ["Private Subnet"]
                     class Priv_Sub_B1 privateSubnet
-                    KC_Fargate_1["ECS Fargate (Keycloak)"]:::service
-                    RDS_KC_Primary[("RDS Primary (Keycloak)")]:::service
+                    KC_Fargate_1["ECS Fargate<br/>(Keycloak)"]:::service
+                    RDS_KC_Primary[("RDS Primary<br/>(Keycloak)")]:::service
                 end
             end
 
@@ -55,8 +56,8 @@ graph TB
                 end
                 subgraph Priv_Sub_B2 ["Private Subnet"]
                     class Priv_Sub_B2 privateSubnet
-                    KC_Fargate_2["ECS Fargate (Keycloak)"]:::service
-                    RDS_KC_Standby[("RDS Standby (Keycloak)")]:::service
+                    KC_Fargate_2["ECS Fargate<br/>(Keycloak)"]:::service
+                    RDS_KC_Standby[("RDS Standby<br/>(Keycloak)")]:::service
                 end
             end
         end
@@ -66,33 +67,47 @@ graph TB
     subgraph Account_A ["AWS Account A (App)"]
         class Account_A account
 
-        subgraph Edge_A ["Edge & Regional Services"]
+        subgraph Edge_A ["Edge & Global Services"]
             style Edge_A fill:#fff,stroke:none
-            R53_Sub_A["Route 53 Hosted Zone (app.ryo-okazaki.com)"]:::dns
-            CF["CloudFront"]:::service
-            S3_Assets[("S3 (Assets)")]:::service
+            R53_Sub_A["Route 53 Hosted Zone<br/>(app.ryo-okazaki.com)"]:::dns
+            ACM_A["ACM (Global/Regional)"]:::service
+
+            subgraph CDN_Group ["CloudFront Distributions"]
+                style CDN_Group fill:#f5f0ff,stroke:#8c4fff,stroke-width:1px
+                CF_App["CloudFront<br/>(App - SSR)"]:::cdn
+                CF_Assets["CloudFront<br/>(Next.js Assets)"]:::cdn
+                CF_Media["CloudFront<br/>(Media Delivery)"]:::cdn
+            end
+
+            subgraph S3_Group ["S3 Buckets"]
+                style S3_Group fill:#e8f5e9,stroke:#3f8624,stroke-width:1px
+                S3_Assets[("S3<br/>(Next.js Assets)")]:::storage
+                S3_Media[("S3<br/>(Media Files)")]:::storage
+            end
+        end
+
+        subgraph Regional_A ["Regional Services"]
+            style Regional_A fill:#fff,stroke:none
             ECR_A["ECR (App Images)"]:::service
             SES_A["SES (App Email)"]:::service
-            Secrets_A["Secrets Manager (App Params)"]:::service
-            ACM_A["ACM (Global/Regional)"]:::service
+            Secrets_A["Secrets Manager<br/>(App Params)"]:::service
         end
 
         subgraph VPC_A ["VPC (10.0.0.0/16)"]
             class VPC_A vpc
-            IGW_A["Internet Gateway"]:::service
 
             subgraph AZ1_A ["Availability Zone 1a"]
                 class AZ1_A az
                 subgraph Pub_Sub_A1 ["Public Subnet"]
                     class Pub_Sub_A1 publicSubnet
-                    ALB_A1["ALB Node"]:::service
+                    ALB_A1["ALB Node<br/>⚠️ CF Prefix List Only"]:::service
                     NAT_A1["NAT Gateway"]:::service
                 end
                 subgraph Priv_Sub_A1 ["Private Subnet"]
                     class Priv_Sub_A1 privateSubnet
-                    FE_Fargate_1["ECS Fargate (Next.js) + SC"]:::service
-                    BE_Fargate_1["ECS Fargate (Express) + SC"]:::service
-                    RDS_App_Primary[("RDS Primary (App)")]:::service
+                    FE_Fargate_1["ECS Fargate<br/>(Next.js) + SC"]:::service
+                    BE_Fargate_1["ECS Fargate<br/>(Express) + SC"]:::service
+                    RDS_App_Primary[("RDS Primary<br/>(App)")]:::service
                 end
             end
 
@@ -100,14 +115,14 @@ graph TB
                 class AZ2_A az
                 subgraph Pub_Sub_A2 ["Public Subnet"]
                     class Pub_Sub_A2 publicSubnet
-                    ALB_A2["ALB Node"]:::service
+                    ALB_A2["ALB Node<br/>⚠️ CF Prefix List Only"]:::service
                     NAT_A2["NAT Gateway"]:::service
                 end
                 subgraph Priv_Sub_A2 ["Private Subnet"]
                     class Priv_Sub_A2 privateSubnet
-                    FE_Fargate_2["ECS Fargate (Next.js) + SC"]:::service
-                    BE_Fargate_2["ECS Fargate (Express) + SC"]:::service
-                    RDS_App_Standby[("RDS Standby (App)")]:::service
+                    FE_Fargate_2["ECS Fargate<br/>(Next.js) + SC"]:::service
+                    BE_Fargate_2["ECS Fargate<br/>(Express) + SC"]:::service
+                    RDS_App_Standby[("RDS Standby<br/>(App)")]:::service
                 end
             end
         end
@@ -115,31 +130,49 @@ graph TB
 
 %% --- ネットワークフロー ---
 
-%% 1. ドメイン
-    R53_Root -.->|"NS Delegation"| R53_Sub_A & R53_Sub_B
+%% 1. ドメイン委任
+    R53_Root -.->|"NS Delegation"| R53_Sub_A
+    R53_Root -.->|"NS Delegation"| R53_Sub_B
 
-%% 2. ユーザーアクセス
-    Internet ==>|"HTTPS (app.ryo-okazaki.com)"| CF ==> IGW_A ==> ALB_A1 & ALB_A2
+%% 2. DNS解決 (点線で表現)
+    R53_Sub_A -.->|"A/AAAA"| CF_App & CF_Assets & CF_Media
+    R53_Sub_B -.->|"A/AAAA"| ALB_B1 & ALB_B2
+
+%% 3. ユーザーアクセス - App (SSR)
+    Internet ==>|"app.ryo-okazaki.com"| CF_App
+    CF_App ==>|"AWS Backbone<br/>(Origin Request)"| ALB_A1 & ALB_A2
     ALB_A1 & ALB_A2 ==> FE_Fargate_1 & FE_Fargate_2
 
-    Internet ==>|"HTTPS (auth.ryo-okazaki.com)"| IGW_B ==> ALB_B1 & ALB_B2
+%% 4. ユーザーアクセス - Static Assets
+    Internet ==>|"assets.app.ryo-okazaki.com"| CF_Assets
+    CF_Assets ==>|"OAC"| S3_Assets
+
+%% 5. ユーザーアクセス - Media
+    Internet ==>|"media.app.ryo-okazaki.com"| CF_Media
+    CF_Media ==>|"OAC"| S3_Media
+
+%% 6. ユーザーアクセス - Auth (Keycloak)
+    Internet ==>|"auth.ryo-okazaki.com"| ALB_B1 & ALB_B2
     ALB_B1 & ALB_B2 ==> KC_Fargate_1 & KC_Fargate_2
 
-%% 3. コンテナ間通信 (Service Connect)
-    FE_Fargate_1 == "Service Connect" ==> BE_Fargate_1
-    FE_Fargate_2 == "Service Connect" ==> BE_Fargate_2
-    linkStyle 10,11 stroke:#9370db,stroke-width:3px,color:#4b0082
+%% 7. コンテナ間通信 (Service Connect)
+    FE_Fargate_1 <=="Service Connect"==> BE_Fargate_1
+    FE_Fargate_2 <=="Service Connect"==> BE_Fargate_2
 
-%% 4. 認証連携 (Account A -> B Public)
-    FE_Fargate_1 & BE_Fargate_1 -.-> NAT_A1
-    FE_Fargate_2 & BE_Fargate_2 -.-> NAT_A2
-    NAT_A1 & NAT_A2 -.->|"Internet"| ALB_B1 & ALB_B2
+%% 8. 認証連携 (Account A -> B via NAT)
+FE_Fargate_1 & BE_Fargate_1 -.->|"OIDC/OAuth"| NAT_A1
+FE_Fargate_2 & BE_Fargate_2 -.->|"OIDC/OAuth"| NAT_A2
+NAT_A1 -.->|"HTTPS"| ALB_B1
+NAT_A2 -.->|"HTTPS"| ALB_B2
 
-%% 5. 秘匿情報・イメージ・メール (Egress)
-    FE_Fargate_1 -.-> Secrets_A & ECR_A
-    BE_Fargate_1 -.-> Secrets_A & ECR_A & SES_A
-    KC_Fargate_1 & KC_Fargate_2 -.-> Secrets_B & ECR_B & SES_B
+%% 9. メディアアップロード (Backend -> S3)
+BE_Fargate_1 & BE_Fargate_2 -.->|"Put Object"| S3_Media
 
-%% 6. データベース同期
-    RDS_App_Primary -.->|"Replication"| RDS_App_Standby
-    RDS_KC_Primary -.->|"Replication"| RDS_KC_Standby
+%% 10. 秘匿情報・イメージ取得
+FE_Fargate_1 & FE_Fargate_2 -.-> Secrets_A & ECR_A
+BE_Fargate_1 & BE_Fargate_2 -.-> Secrets_A & ECR_A & SES_A
+KC_Fargate_1 & KC_Fargate_2 -.-> Secrets_B & ECR_B & SES_B
+
+%% 11. データベース同期
+RDS_App_Primary -.->|"Replication"| RDS_App_Standby
+RDS_KC_Primary -.->|"Replication"| RDS_KC_Standby
