@@ -63,6 +63,9 @@ module "load_balancer" {
   access_logs_bucket_id = module.storage.s3_logs_bucket_id
 }
 
+# ==============================================================================
+# Route53 A-Record for ALB (binding to custom domain)
+# ==============================================================================
 resource "aws_route53_record" "alias" {
   zone_id = module.domain.zone_id # domainモジュールのOutput
   name    = var.domain_name
