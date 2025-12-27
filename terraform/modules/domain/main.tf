@@ -70,13 +70,11 @@ locals {
 
 resource "aws_route53_record" "validation" {
   for_each = {
-    for dvo in local.dvos : dvo.domain_name => {
+    for dvo in aws_acm_certificate.alb.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
     }
-    # 重複排除: 同じドメイン名なら検証レコードも同じになる場合があるため
-    if length(dvo.domain_name) > 0
   }
 
   allow_overwrite = true
