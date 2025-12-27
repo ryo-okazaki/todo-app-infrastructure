@@ -23,7 +23,10 @@ resource "aws_route53_zone" "this" {
 # 1. ACM for ALB (Regional: Tokyo)
 # ------------------------------------------------------------------------------
 resource "aws_acm_certificate" "alb" {
-  domain_name       = "*.${var.domain_name}" # ワイルドカード証明書
+  domain_name       = var.domain_name
+  subject_alternative_names = [
+    "*.${var.domain_name}"  # *.dev.todo-app.ryo-okazaki.com
+  ]
   validation_method = "DNS"
 
   lifecycle {
