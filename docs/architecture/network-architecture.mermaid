@@ -69,7 +69,7 @@ graph TB
 
         subgraph Edge_A ["Edge & Global Services"]
             style Edge_A fill:#fff,stroke:none
-            R53_Sub_A["Route 53 Hosted Zone<br/>(app.ryo-okazaki.com)"]:::dns
+            R53_Sub_A["Route 53 Hosted Zone<br/>(todo-app.ryo-okazaki.com)"]:::dns
             ACM_A["ACM (Global/Regional)"]:::service
 
             subgraph CDN_Group ["CloudFront Distributions"]
@@ -139,16 +139,16 @@ graph TB
     R53_Sub_B -.->|"A/AAAA"| ALB_B1 & ALB_B2
 
 %% 3. ユーザーアクセス - App (SSR)
-    Internet ==>|"app.ryo-okazaki.com"| CF_App
+    Internet ==>|"todo-app.ryo-okazaki.com"| CF_App
     CF_App ==>|"AWS Backbone<br/>(Origin Request)"| ALB_A1 & ALB_A2
     ALB_A1 & ALB_A2 ==> FE_Fargate_1 & FE_Fargate_2
 
 %% 4. ユーザーアクセス - Static Assets
-    Internet ==>|"assets.app.ryo-okazaki.com"| CF_Assets
+    Internet ==>|"assets.todo-app.ryo-okazaki.com"| CF_Assets
     CF_Assets ==>|"OAC"| S3_Assets
 
 %% 5. ユーザーアクセス - Media
-    Internet ==>|"media.app.ryo-okazaki.com"| CF_Media
+    Internet ==>|"media.todo-app.ryo-okazaki.com"| CF_Media
     CF_Media ==>|"OAC"| S3_Media
 
 %% 6. ユーザーアクセス - Auth (Keycloak)
