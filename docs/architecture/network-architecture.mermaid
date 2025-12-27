@@ -136,7 +136,8 @@ graph TB
     NAT_A1 & NAT_A2 -.->|"Internet"| ALB_B1 & ALB_B2
 
 %% 5. 秘匿情報・イメージ・メール (Egress)
-    FE_Fargate_1 & BE_Fargate_1 -.-> Secrets_A & ECR_A & SES_A
+    FE_Fargate_1 -.-> Secrets_A & ECR_A
+    BE_Fargate_1 -.-> Secrets_A & ECR_A & SES_A
     KC_Fargate_1 & KC_Fargate_2 -.-> Secrets_B & ECR_B & SES_B
 
 %% 6. データベース同期
