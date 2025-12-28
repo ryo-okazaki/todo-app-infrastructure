@@ -2,7 +2,7 @@
 # Common Modules
 ############################
 tf-fmt-mods:
-	terraform -chdir=terraform/modules fmt
+	terraform -chdir=terraform/modules fmt -recursive
 
 ############################
 # Development Environment
