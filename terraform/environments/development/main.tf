@@ -212,6 +212,7 @@ module "api_service" {
     FRONTEND_BASE_URL           = "https://${var.domain_name}"
     S3_BUCKET                   = module.cdn_assets.media_bucket.id
     CLOUDFRONT_URL              = module.cdn_assets.media_cloudfront.url
+    KEYCLOAK_CLIENT_URL         = var.keycloak_client_url
     MAIL_FROM                   = "noreply@${var.domain_name}"
     MAIL_FROM_NAME              = "Todo App Support"
     PORT                        = tostring(var.api_container_port)
