@@ -280,6 +280,6 @@ module "ecs_frontend" {
     JWT_SECRET                  = module.shared_secrets.api_jwt_secret_arn
   }
 
-  health_check_path    = "/login"
-  health_check_matcher = "200"
+  health_check_path    = "/health"
+  health_check_matcher = "200-399"
 }
