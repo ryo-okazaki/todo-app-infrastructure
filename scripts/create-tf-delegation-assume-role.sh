@@ -6,36 +6,9 @@
 #
 # Usage:
 #   create-tf-delegation-assume-role.sh \
-#     --account-id <ACCOUNT_ID> \
+#     --account-id <ACCOUNT_ID> [--account-id <ACCOUNT_ID> ...] \
 #     --hosted-zone-id <HOSTED_ZONE_ID> \
 #     --profile <AWS_PROFILE>
-#
-# Required:
-#   --account-id <ACCOUNT_ID>
-#       AWS Account ID of the development account (allowed to assume role)
-#
-#   --hosted-zone-id <HOSTED_ZONE_ID>
-#       Route53 hosted zone ID (parent zone)
-#
-#   --profile <AWS_PROFILE>
-#       AWS CLI profile of the domain management account
-#
-# Optional:
-#   --role-name <ROLE_NAME>
-#       IAM role name (default: TerraformDNSDelegationRole)
-#
-#   --policy-name <POLICY_NAME>
-#       Inline policy name (default: AllowRecordUpdate)
-#
-#   -h, --help
-#       Show this help message and exit
-#
-# Example:
-#   ./create-tf-delegation-assume-role.sh \
-#     --account-id 999999999999 \
-#     --hosted-zone-id Z12345EXAMPLE \
-#     --profile domain-admin
-#
 
 set -euo pipefail
 
@@ -43,11 +16,14 @@ set -euo pipefail
 ROLE_NAME="TerraformDNSDelegationRole"
 POLICY_NAME="AllowRecordUpdate"
 
+# multiple account IDs
+ACCOUNT_IDS=()
+
 # === args ===
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --account-id)
-      ACCOUNT_ID="$2"
+      ACCOUNT_IDS+=("$2")
       shift 2
       ;;
     --hosted-zone-id)
@@ -67,7 +43,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     -h|--help)
-      sed -n '2,60p' "$0"
+      sed -n '2,80p' "$0"
       exit 0
       ;;
     *)
@@ -78,11 +54,19 @@ while [[ $# -gt 0 ]]; do
 done
 
 # === required check ===
-if [[ -z "${ACCOUNT_ID:-}" || -z "${HOSTED_ZONE_ID:-}" || -z "${AWS_PROFILE:-}" ]]; then
-  echo "Error: --account-id, --hosted-zone-id, and --profile are required."
-  sed -n '2,60p' "$0"
+if [[ ${#ACCOUNT_IDS[@]} -eq 0 || -z "${HOSTED_ZONE_ID:-}" || -z "${AWS_PROFILE:-}" ]]; then
+  echo "Error: --account-id (at least one), --hosted-zone-id, and --profile are required."
+  sed -n '2,80p' "$0"
   exit 1
 fi
+
+# === build principal ARNs ===
+PRINCIPAL_ARNS=()
+for id in "${ACCOUNT_IDS[@]}"; do
+  PRINCIPAL_ARNS+=( "\"arn:aws:iam::${id}:root\"" )
+done
+
+PRINCIPAL_ARNS_JSON=$(IFS=, ; echo "${PRINCIPAL_ARNS[*]}")
 
 # === trust policy ===
 TRUST_POLICY_JSON=$(cat <<EOF
@@ -92,7 +76,9 @@ TRUST_POLICY_JSON=$(cat <<EOF
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::${ACCOUNT_ID}:root"
+        "AWS": [
+          ${PRINCIPAL_ARNS_JSON}
+        ]
       },
       "Action": "sts:AssumeRole"
     }
@@ -107,15 +93,26 @@ PERMISSION_POLICY_JSON=$(cat <<EOF
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "AllowListHostedZones",
       "Effect": "Allow",
       "Action": [
-        "route53:ChangeResourceRecordSets",
-        "route53:ListResourceRecordSets",
-        "route53:GetHostedZone"
+        "route53:ListHostedZones",
+        "route53:ListTagsForResource"
       ],
-      "Resource": "arn:aws:route53:::hostedzone/${HOSTED_ZONE_ID}"
+      "Resource": "*"
     },
     {
+      "Sid": "AllowGetAndListSpecificZone",
+      "Effect": "Allow",
+      "Action": [
+        "route53:GetHostedZone",
+        "route53:ListResourceRecordSets",
+        "route53:ChangeResourceRecordSets"
+      ],
+      "Resource": "arn:aws:route53:::hostedzone/Z015764518G1D049IWPT0"
+    },
+    {
+      "Sid": "AllowGetChangeStatus",
       "Effect": "Allow",
       "Action": "route53:GetChange",
       "Resource": "arn:aws:route53:::change/*"
@@ -158,6 +155,9 @@ ROLE_ARN=$(aws iam get-role \
 echo "✅ IAM role is ready for DNS delegation:"
 echo "   - role name       : ${ROLE_NAME}"
 echo "   - role arn        : ${ROLE_ARN}"
-echo "   - allowed account : ${ACCOUNT_ID}"
+echo "   - allowed accounts:"
+for id in "${ACCOUNT_IDS[@]}"; do
+  echo "       - ${id}"
+done
 echo "   - hosted zone id  : ${HOSTED_ZONE_ID}"
 echo "   - profile         : ${AWS_PROFILE}"
