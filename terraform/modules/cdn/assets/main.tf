@@ -97,7 +97,7 @@ resource "aws_cloudfront_distribution" "static_assets" {
   web_acl_id = var.enable_waf ? var.waf_web_acl_id : null
 
   tags = {
-    Name        = "-static-assets-cdn"
+    Name        = "static-assets-cdn"
     Environment = var.environment
   }
 }
