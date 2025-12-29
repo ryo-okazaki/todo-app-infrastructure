@@ -161,3 +161,15 @@ module "mail" {
   sns_topic_name           = "${var.name_prefix}-ses-notifications"
 }
 
+# ==============================================================================
+# ECS Cluster
+# ==============================================================================
+module "ecs_cluster" {
+  source = "../../modules/cluster"
+
+  env                       = var.environment
+  name                      = "${var.name_prefix}-cluster"
+  enable_container_insights = true
+
+}
+
