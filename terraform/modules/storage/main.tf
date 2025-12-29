@@ -21,6 +21,28 @@ resource "aws_ecr_repository" "this" {
   }
 }
 
+# 初回のみ nginxイメージをECRにpushする
+resource "null_resource" "push_initial_image" {
+  for_each = aws_ecr_repository.this
+
+  depends_on = [aws_ecr_repository.this]
+
+  triggers = {
+    ecr_repository_url = each.value.repository_url
+  }
+
+  provisioner "local-exec" {
+    command = "bash ${path.module}/push-ecr-nginx-image.sh"
+    environment = {
+      ECR_REPOSITORY_URL = each.value.repository_url
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [triggers]
+  }
+}
+
 # ライフサイクルポリシー (コスト削減: 最新30個だけ残す)
 resource "aws_ecr_lifecycle_policy" "this" {
   for_each   = toset(var.ecr_repositories)
