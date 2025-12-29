@@ -13,4 +13,7 @@ output "username" {
   value       = aws_db_instance.this.username
 }
 
-# パスワードはsensitiveなので出力しない、またはsensitive指定で出力する
+output "db_address" {
+  description = "RDS endpoint address"
+  value       = aws_db_instance.this.address
+}
