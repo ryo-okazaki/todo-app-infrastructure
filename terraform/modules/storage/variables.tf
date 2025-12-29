@@ -1,3 +1,8 @@
+variable "env" {
+  description = "Environment (e.g., development, staging, production)"
+  type        = string
+}
+
 variable "name" {
   description = "リソース名のプレフィックス"
   type        = string
