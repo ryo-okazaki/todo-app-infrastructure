@@ -46,7 +46,7 @@ resource "aws_ecr_lifecycle_policy" "this" {
 # S3 Bucket (For Logs: ALB & CloudFront)
 # ------------------------------------------------------------------------------
 resource "aws_s3_bucket" "logs" {
-  bucket        = "${var.name}-logs"
+  bucket        = "${var.env}-${data.aws_caller_identity.current.account_id}-${var.name}-logs"
   force_destroy = var.force_destroy # 開発環境なら中身ごと消せるようにする
 
   tags = {
