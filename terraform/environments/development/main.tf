@@ -105,4 +105,31 @@ module "cdn_api" {
   price_class = "PriceClass_200"
   enable_waf  = false
 }
+
+# ------------------------------------------------------------------------------
+# CDN Module (S3 + CloudFront)
+# ------------------------------------------------------------------------------
+module "cdn_assets" {
+  source = "../../modules/cdn/assets"
+
+  environment   = var.environment
+  force_destroy = true
+
+  # Domain設定（domain moduleから取得）
+  domain_name             = module.domain.domain_name
+  static_assets_subdomain = "cdn"
+  media_subdomain         = "media"
+
+  # ACM証明書（domain moduleから取得）
+  cloudfront_certificate_arn = module.domain.cloudfront_certificate_arn
+
+  # Route53 Zone（domain moduleから取得）
+  route53_zone_id = module.domain.zone_id
+
+  # ログバケット（storage moduleから取得）
+  logs_bucket_id = module.storage.logs_bucket.id
+
+  # WAF設定
+  enable_waf     = false
+  waf_web_acl_id = null
 }
