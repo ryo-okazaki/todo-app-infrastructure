@@ -81,4 +81,28 @@ module "load_balancer" {
 
   # storageモジュールで作ったログ用バケット
   access_logs_bucket_id = module.storage.logs_bucket.id
+
+  cloudfront_custom_header_name  = var.cloudfront_custom_header_name
+  cloudfront_custom_header_value = module.shared_secrets.cloudfront_origin_secret_value
+}
+
+# ------------------------------------------------------------------------------
+# CDN Module (ALB + CloudFront)
+# ------------------------------------------------------------------------------
+module "cdn_api" {
+  source = "../../modules/cdn/api"
+
+  name                = "todo-app-api"
+  domain_name         = var.domain_name
+  acm_certificate_arn = module.domain.acm_cloudfront_certificate_arn
+  alb_domain_name     = module.load_balancer.alb_dns_name
+  route53_zone_id     = module.domain.route53_zone_id
+
+  origin_custom_header_name  = var.cloudfront_custom_header_name
+  origin_custom_header_value = module.shared_secrets.cloudfront_origin_secret_value
+
+  # Optional
+  price_class = "PriceClass_200"
+  enable_waf  = false
+}
 }
