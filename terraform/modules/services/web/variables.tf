@@ -123,3 +123,16 @@ variable "secrets_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "cloudfront_custom_header_name" {
+  description = "Custom header name from CloudFront for origin verification"
+  type        = string
+  default     = null
+}
+
+variable "cloudfront_custom_header_value" {
+  description = "Custom header value from CloudFront for origin verification"
+  type        = string
+  sensitive   = true
+  default     = null
+}

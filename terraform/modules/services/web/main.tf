@@ -241,6 +241,17 @@ resource "aws_lb_listener_rule" "this" {
     }
   }
 
+  # CloudFrontカスタムヘッダー検証
+  dynamic "condition" {
+    for_each = var.cloudfront_custom_header_name != null ? [1] : []
+    content {
+      http_header {
+        http_header_name = var.cloudfront_custom_header_name
+        values           = [var.cloudfront_custom_header_value]
+      }
+    }
+  }
+
   tags = {
     Name = "${var.name}-listener-rule"
   }
