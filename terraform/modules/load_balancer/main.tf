@@ -40,15 +40,21 @@ resource "aws_security_group" "this" {
 # ------------------------------------------------------------------------------
 resource "aws_lb" "this" {
   name               = "${var.name}-alb"
-  internal           = false # インターネット向け
+  internal           = false # インターネット向け（CloudFront経由）
   load_balancer_type = "application"
   security_groups    = [aws_security_group.this.id]
   subnets            = var.public_subnet_ids
 
-  access_logs {
-    bucket  = var.access_logs_bucket_id
-    enabled = true
-    prefix  = "alb-logs"
+  # CloudFrontからの接続のためdrop_invalid_header_fieldsを有効化
+  drop_invalid_header_fields = true
+
+  dynamic "access_logs" {
+    for_each = var.access_logs_bucket_id != null ? [1] : []
+    content {
+      bucket  = var.access_logs_bucket_id
+      enabled = true
+      prefix  = "alb-logs"
+    }
   }
 
   tags = {
