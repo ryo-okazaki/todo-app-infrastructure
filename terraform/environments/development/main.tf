@@ -230,3 +230,49 @@ module "api_service" {
 
   health_check_path = "/health"
 }
+
+# ==============================================================================
+# Web Service (Next.js)
+# ==============================================================================
+module "ecs_frontend" {
+  source = "../../modules/services/web"
+
+  env        = var.environment
+  name       = "${var.name_prefix}-frontend"
+  cluster_id = module.ecs_cluster.cluster_id
+
+  vpc_id             = module.network.vpc_id
+  vpc_cidr           = module.network.vpc_cidr_block
+  private_subnet_ids = module.network.private_subnet_ids
+
+  # ALB設定
+  alb_security_group_id  = module.load_balancer.security_group_id
+  https_listener_arn     = module.load_balancer.https_listener_arn
+  listener_rule_priority = 10
+  path_pattern           = ["/*"]
+
+  # Service Connect設定
+  service_connect_namespace_arn = module.network.service_discovery_namespace_arn
+
+  # Container設定
+  ecr_repository_url = module.storage.ecr_repositories[var.ecr_repository_web]
+  container_port     = var.web_container_port
+  cpu                = 512
+  memory             = 1024
+  desired_count      = 1
+
+  environment_variables = {
+    API_BASE_URL        = "http://${var.service_connect_dns_name}.${var.api_container_domain_suffix}:${var.api_container_port}"
+    KEYCLOAK_CLIENT_URL = var.keycloak_client_url
+    NODE_ENV            = "development"
+  }
+
+  secret_environment_variables = {
+    JWT_SECRET                  = module.shared_secrets.api_jwt_secret_arn
+    KEYCLOAK_FRONTEND_CLIENT_ID = var.keycloak_web_client_id
+    KEYCLOAK_REALM              = var.keycloak_realm
+  }
+
+  health_check_path    = "/login"
+  health_check_matcher = "200"
+}
