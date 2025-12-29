@@ -35,8 +35,3 @@ output "https_listener_arn" {
   description = "HTTPS listener ARN"
   value       = aws_lb_listener.https.arn
 }
-
-output "cloudfront_validated_listener_rule_arn" {
-  description = "CloudFront validated listener rule ARN"
-  value       = try(aws_lb_listener_rule.cloudfront_validated[0].arn, null)
-}

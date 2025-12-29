@@ -121,30 +121,3 @@ resource "aws_lb_listener" "https" {
     }
   }
 }
-
-# ------------------------------------------------------------------------------
-# Listener Rule: Validate CloudFront Custom Header
-# ------------------------------------------------------------------------------
-resource "aws_lb_listener_rule" "cloudfront_validated" {
-  count = var.cloudfront_custom_header_name != null ? 1 : 0
-
-  listener_arn = aws_lb_listener.https.arn
-  priority     = 1
-
-  action {
-    type = "fixed-response"
-
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "Service Unavailable (No Target Group configured yet)"
-      status_code  = "503"
-    }
-  }
-
-  condition {
-    http_header {
-      http_header_name = var.cloudfront_custom_header_name
-      values           = [var.cloudfront_custom_header_value]
-    }
-  }
-}
