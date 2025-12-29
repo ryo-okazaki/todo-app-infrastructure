@@ -225,9 +225,6 @@ module "api_service" {
     KEYCLOAK_REALM             = var.keycloak_realm
   }
 
-  database_url_secret_arn = module.shared_secrets.database_url_secret_arn
-  api_jwt_secret_arn      = module.shared_secrets.api_jwt_secret_arn
-
   health_check_path = "/health"
 }
 

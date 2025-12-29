@@ -138,13 +138,9 @@ resource "aws_ecs_task_definition" "this" {
     ] : []
 
     secrets = [
-      {
-        name      = "DATABASE_URL"
-        valueFrom = var.database_url_secret_arn
-      },
-      {
-        name      = "API_JWT_SECRET"
-        valueFrom = var.api_jwt_secret_arn
+      for k, v in var.secret_environment_variables : {
+        name      = k
+        valueFrom = v
       }
     ]
 

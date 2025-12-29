@@ -96,18 +96,6 @@ variable "secrets_arns" {
   default     = []
 }
 
-variable "database_url_secret_arn" {
-  description = "ARN of the DATABASE_URL secret in Secrets Manager"
-  type        = string
-  default     = null
-}
-
-variable "api_jwt_secret_arn" {
-  description = "ARN of the API JWT secret in Secrets Manager"
-  type        = string
-  default     = null
-}
-
 # variable "db_credentials_secret_arn" {
 #   description = "ARN of the database credentials secret in Secrets Manager (contains username, password, dbname, host, port as JSON)"
 #   type        = string
