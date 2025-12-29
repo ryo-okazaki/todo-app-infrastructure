@@ -249,6 +249,10 @@ module "ecs_frontend" {
   listener_rule_priority = 10
   path_pattern           = ["/*"]
 
+  # CloudFront Origin検証
+  cloudfront_custom_header_name  = var.cloudfront_custom_header_name
+  cloudfront_custom_header_value = module.shared_secrets.cloudfront_origin_secret_value
+
   # Service Connect設定
   service_connect_namespace_arn = module.network.service_discovery_namespace_arn
 
