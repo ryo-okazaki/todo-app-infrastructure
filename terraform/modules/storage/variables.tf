@@ -8,3 +8,8 @@ variable "force_destroy" {
   type        = bool
   default     = false
 }
+
+variable "ecr_repositories" {
+  description = "ECR Repository names"
+  type        = list(string)
+}

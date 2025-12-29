@@ -7,12 +7,8 @@ data "aws_caller_identity" "current" {}
 # ------------------------------------------------------------------------------
 # ECR Repositories (Frontend & Backend)
 # ------------------------------------------------------------------------------
-locals {
-  repos = ["frontend", "backend"]
-}
-
 resource "aws_ecr_repository" "this" {
-  for_each             = toset(local.repos)
+  for_each             = toset(var.ecr_repositories)
   name                 = "${var.name}-${each.key}"
   image_tag_mutability = "MUTABLE" # 同一タグの上書きを許可
 
@@ -27,7 +23,7 @@ resource "aws_ecr_repository" "this" {
 
 # ライフサイクルポリシー (コスト削減: 最新30個だけ残す)
 resource "aws_ecr_lifecycle_policy" "this" {
-  for_each   = toset(local.repos)
+  for_each   = toset(var.ecr_repositories)
   repository = aws_ecr_repository.this[each.key].name
 
   policy = jsonencode({
