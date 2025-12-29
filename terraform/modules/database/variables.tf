@@ -8,7 +8,6 @@ variable "vpc_id" {
   type        = string
 }
 
-# ToDo: バックエンドのコンテナからのアクセスのみ許可するようにSGの範囲を変更する
 variable "vpc_cidr" {
   description = "VPCのCIDR (セキュリティグループの許可範囲に使用)"
   type        = string
