@@ -37,6 +37,12 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "db_port" {
+  description = "データベースのポート番号"
+  type        = number
+  default     = 5432
+}
+
 variable "instance_class" {
   description = "インスタンスクラス (例: db.t3.micro)"
   type        = string

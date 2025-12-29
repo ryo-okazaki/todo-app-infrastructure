@@ -16,8 +16,8 @@ resource "aws_security_group" "this" {
 
   # Ingress: VPC内部からのPostgreSQL接続を許可
   ingress {
-    from_port   = 5432
-    to_port     = 5432
+    from_port   = var.db_port
+    to_port     = var.db_port
     protocol    = "tcp"
     cidr_blocks = [var.vpc_cidr]
   }
