@@ -173,3 +173,60 @@ module "ecs_cluster" {
 
 }
 
+# ==============================================================================
+# API Service (Express)
+# ==============================================================================
+module "api_service" {
+  source = "../../modules/services/api"
+
+  env        = var.environment
+  name       = "${var.name_prefix}-backend"
+  cluster_id = module.ecs_cluster.cluster_id
+
+  vpc_id             = module.network.vpc_id
+  vpc_cidr           = module.network.vpc_cidr_block
+  private_subnet_ids = module.network.private_subnet_ids
+
+  # Service Connect設定
+  service_connect_namespace_arn = module.network.service_discovery_namespace_arn
+  service_connect_dns_name      = var.service_connect_dns_name
+
+  # Container設定
+  ecr_repository_url = module.storage.ecr_repositories[var.ecr_repository_api]
+  container_port     = var.api_container_port
+  cpu                = 256
+  memory             = 512
+  desired_count      = 1
+
+  node_env = "development"
+
+  secrets_arns = [
+    module.shared_secrets.db_credentials_secret_arn,
+    module.shared_secrets.database_url_secret_arn,
+    module.shared_secrets.api_jwt_secret_arn,
+  ]
+
+  environment_variables = {
+    SERVICE_CONNECT_DNS_NAME    = var.service_connect_dns_name
+    API_CONTAINER_DOMAIN_SUFFIX = var.api_container_domain_suffix
+    FRONTEND_BASE_URL           = "https://${var.domain_name}"
+    S3_BUCKET                   = module.cdn_assets.media_bucket.id
+    CLOUDFRONT_URL              = module.cdn_assets.media_cloudfront.url
+    MAIL_FROM                   = "noreply@${var.domain_name}"
+    MAIL_FROM_NAME              = "Todo App Support"
+    PORT                        = tostring(var.api_container_port)
+    NODE_ENV                    = "development"
+  }
+
+  secret_environment_variables = {
+    DATABASE_URL               = module.shared_secrets.database_url_secret_arn
+    JWT_SECRET                 = module.shared_secrets.api_jwt_secret_arn
+    KEYCLOAK_BACKEND_CLIENT_ID = var.keycloak_api_client_id
+    KEYCLOAK_REALM             = var.keycloak_realm
+  }
+
+  database_url_secret_arn = module.shared_secrets.database_url_secret_arn
+  api_jwt_secret_arn      = module.shared_secrets.api_jwt_secret_arn
+
+  health_check_path = "/health"
+}
