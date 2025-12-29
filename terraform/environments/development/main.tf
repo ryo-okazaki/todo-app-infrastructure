@@ -212,6 +212,8 @@ module "api_service" {
     FRONTEND_BASE_URL           = "https://${var.domain_name}"
     S3_BUCKET                   = module.cdn_assets.media_bucket.id
     CLOUDFRONT_URL              = module.cdn_assets.media_cloudfront.url
+    KEYCLOAK_BACKEND_CLIENT_ID  = var.keycloak_api_client_id
+    KEYCLOAK_REALM              = var.keycloak_realm
     KEYCLOAK_CLIENT_URL         = var.keycloak_client_url
     MAIL_FROM                   = "noreply@${var.domain_name}"
     MAIL_FROM_NAME              = "Todo App Support"
@@ -222,8 +224,6 @@ module "api_service" {
   secret_environment_variables = {
     DATABASE_URL               = module.shared_secrets.database_url_secret_arn
     JWT_SECRET                 = module.shared_secrets.api_jwt_secret_arn
-    KEYCLOAK_BACKEND_CLIENT_ID = var.keycloak_api_client_id
-    KEYCLOAK_REALM             = var.keycloak_realm
   }
 
   health_check_path = "/health"
@@ -265,14 +265,14 @@ module "ecs_frontend" {
 
   environment_variables = {
     API_BASE_URL        = "http://${var.service_connect_dns_name}.${var.api_container_domain_suffix}:${var.api_container_port}"
+    KEYCLOAK_FRONTEND_CLIENT_ID = var.keycloak_web_client_id
+    KEYCLOAK_REALM              = var.keycloak_realm
     KEYCLOAK_CLIENT_URL = var.keycloak_client_url
     NODE_ENV            = "development"
   }
 
   secret_environment_variables = {
     JWT_SECRET                  = module.shared_secrets.api_jwt_secret_arn
-    KEYCLOAK_FRONTEND_CLIENT_ID = var.keycloak_web_client_id
-    KEYCLOAK_REALM              = var.keycloak_realm
   }
 
   health_check_path    = "/login"
