@@ -1,3 +1,17 @@
+module "shared_secrets" {
+  source = "../../modules/secrets"
+
+  name                    = var.name_prefix
+  recovery_window_in_days = 0 # Dev環境用。本番では 7-30 を推奨
+
+  db_name     = var.db_name
+  db_username = var.db_username
+  db_password = var.db_password
+  db_port     = var.db_port
+
+  db_host = module.database.db_address
+}
+
 module "network" {
   source = "../../modules/network"
 
