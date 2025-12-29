@@ -111,3 +111,12 @@ resource "aws_route_table_association" "private" {
     subnet_id      = aws_subnet.private[count.index].id
     route_table_id = aws_route_table.private[count.index].id
 }
+
+# ------------------------------------------------------------------------------
+# Service Discovery Namespace (for ECS Service Connect)
+# ------------------------------------------------------------------------------
+resource "aws_service_discovery_private_dns_namespace" "this" {
+  name        = var.api_container_domain_suffix # コンテナ間通信のdomain suffix
+  description = "Service Connect namespace for ${var.name}"
+  vpc         = aws_vpc.this.id
+}
