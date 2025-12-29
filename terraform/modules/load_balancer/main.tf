@@ -1,38 +1,57 @@
 # ------------------------------------------------------------------------------
-# Security Group for ALB
+# CloudFront Managed Prefix List
+# ------------------------------------------------------------------------------
+data "aws_ec2_managed_prefix_list" "cloudfront" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
+}
+
+# ------------------------------------------------------------------------------
+# Security Group for ALB (CloudFront Only)
 # ------------------------------------------------------------------------------
 resource "aws_security_group" "this" {
   name        = "${var.name}-alb-sg"
-  description = "Allow HTTP/HTTPS inbound"
+  description = "Allow HTTPS inbound from CloudFront only"
   vpc_id      = var.vpc_id
-
-  # HTTP (80)
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # HTTPS (443)
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Egress (All)
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   tags = {
     Name = "${var.name}-alb-sg"
   }
+}
+
+# HTTP (80) - CloudFront からのリダイレクト用
+# CloudFrontはHTTPSで接続するため、本来不要だが互換性のため残す場合
+resource "aws_security_group_rule" "http_from_cloudfront" {
+  count = var.allow_http_from_cloudfront ? 1 : 0
+
+  security_group_id = aws_security_group.this.id
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  prefix_list_ids   = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+  description       = "HTTP from CloudFront (redirect only)"
+}
+
+# HTTPS (443) - CloudFront からのみ許可
+resource "aws_security_group_rule" "https_from_cloudfront" {
+  security_group_id = aws_security_group.this.id
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  prefix_list_ids   = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+  description       = "HTTPS from CloudFront only"
+}
+
+# Egress (All)
+resource "aws_security_group_rule" "egress_all" {
+  security_group_id = aws_security_group.this.id
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  description       = "Allow all outbound traffic"
 }
 
 # ------------------------------------------------------------------------------
