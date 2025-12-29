@@ -117,3 +117,9 @@ variable "log_retention_days" {
   type        = number
   default     = 30
 }
+
+variable "secrets_arns" {
+  description = "List of Secrets Manager ARNs that the task execution role can access"
+  type        = list(string)
+  default     = []
+}

@@ -259,6 +259,10 @@ module "ecs_frontend" {
   memory             = 1024
   desired_count      = 1
 
+  secrets_arns = [
+    module.shared_secrets.api_jwt_secret_arn,
+  ]
+
   environment_variables = {
     API_BASE_URL        = "http://${var.service_connect_dns_name}.${var.api_container_domain_suffix}:${var.api_container_port}"
     KEYCLOAK_CLIENT_URL = var.keycloak_client_url

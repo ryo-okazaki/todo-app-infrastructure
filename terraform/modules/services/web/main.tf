@@ -42,6 +42,27 @@ resource "aws_iam_role_policy_attachment" "execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# Secrets Manager アクセス権限を追加
+resource "aws_iam_role_policy" "secrets_access" {
+  count = length(var.secrets_arns) > 0 ? 1 : 0
+
+  name = "${var.name}-secrets-access"
+  role = aws_iam_role.execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+        ]
+        Resource = var.secrets_arns
+      }
+    ]
+  })
+}
+
 # ------------------------------------------------------------------------------
 # IAM Role for Task
 # ------------------------------------------------------------------------------
