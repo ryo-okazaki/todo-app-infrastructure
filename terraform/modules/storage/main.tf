@@ -88,6 +88,17 @@ resource "aws_s3_bucket_policy" "logs_alb" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
+      # ALB がバケット情報を取得できるようにする
+      {
+        Sid    = "AllowALBGetBucketAcl"
+        Effect = "Allow"
+        Principal = {
+          AWS = data.aws_elb_service_account.main.arn
+        }
+        Action   = "s3:GetBucketAcl"
+        Resource = aws_s3_bucket.logs.arn
+      },
+      # ALB がログを書き込めるようにする
       {
         Sid    = "AllowALBLogWrite"
         Effect = "Allow"
@@ -95,7 +106,31 @@ resource "aws_s3_bucket_policy" "logs_alb" {
           AWS = data.aws_elb_service_account.main.arn
         }
         Action   = "s3:PutObject"
-        Resource = "${aws_s3_bucket.logs.arn}/*"
+        Resource = "${aws_s3_bucket.logs.arn}/alb-logs/*"
+      },
+      # CloudFront用のログ書き込み権限（ACLベース）
+      {
+        Sid    = "AllowCloudFrontGetBucketAcl"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = "s3:GetBucketAcl"
+        Resource = aws_s3_bucket.logs.arn
+      },
+      {
+        Sid    = "AllowCloudFrontPutObject"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = "s3:PutObject"
+        Resource = "${aws_s3_bucket.logs.arn}/cloudfront/*"
+        Condition = {
+          StringEquals = {
+            "s3:x-amz-acl" = "bucket-owner-full-control"
+          }
+        }
       }
     ]
   })
