@@ -11,6 +11,7 @@ resource "aws_ecr_repository" "this" {
   for_each             = toset(var.ecr_repositories)
   name                 = "${var.name}-${each.key}"
   image_tag_mutability = "MUTABLE" # 同一タグの上書きを許可
+  force_delete         = var.force_destroy
 
   image_scanning_configuration {
     scan_on_push = true # Push時に脆弱性スキャン
