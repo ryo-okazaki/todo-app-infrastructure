@@ -78,7 +78,7 @@ resource "aws_s3_bucket_public_access_block" "logs" {
 data "aws_caller_identity" "current" {}
 data "aws_elb_service_account" "main" {} # ALBのAWS公式アカウントIDを取得
 
-resource "aws_s3_bucket_policy" "logs" {
+resource "aws_s3_bucket_policy" "logs_alb" {
   depends_on = [
     aws_s3_bucket_public_access_block.logs,
     aws_s3_bucket_acl.logs
