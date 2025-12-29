@@ -121,4 +121,119 @@ variable "dns_account_assume_role" {
     error_message = "dns_account_assume_role must be specified."
   }
 }
+
+variable "cloudfront_custom_header_name" {
+  description = "Name of the custom header for CloudFront"
+  type        = string
+  default     = "X-CloudFront-Secret"
+}
+
+variable "api_container_port" {
+  description = "Port number for the API container"
+  type        = number
+
+  validation {
+    condition     = var.api_container_port != null
+    error_message = "api_container_port must be specified."
+  }
+}
+
+variable "web_container_port" {
+  description = "Port number for the Web container"
+  type        = number
+
+  validation {
+    condition     = var.web_container_port != null
+    error_message = "web_container_port must be specified."
+  }
+}
+
+variable "api_container_domain_suffix" {
+  description = "Domain suffix for the API container"
+  type        = string
+
+  validation {
+    condition     = var.api_container_domain_suffix != null
+    error_message = "api_container_domain_suffix must be specified."
+  }
+}
+
+variable "service_connect_dns_name" {
+  description = "DNS name for Service Connect (e.g., backend)"
+  type        = string
+
+  validation {
+    condition     = var.service_connect_dns_name != null
+    error_message = "service_connect_dns_name must be specified."
+  }
+}
+
+variable "ecr_repositories" {
+  description = "ECR Repository names"
+  type        = list(string)
+
+  validation {
+    condition     = length(var.ecr_repositories) >= 2
+    error_message = "At least two ECR repositories must be specified."
+  }
+}
+
+variable "ecr_repository_api" {
+  description = "ECR Repository name for API service"
+  type        = string
+
+  validation {
+    condition     = var.ecr_repository_api != null
+    error_message = "ecr_repository_api must be specified."
+  }
+}
+
+variable "ecr_repository_web" {
+  description = "ECR Repository name for Web service"
+  type        = string
+
+  validation {
+    condition     = var.ecr_repository_web != null
+    error_message = "ecr_repository_web must be specified."
+  }
+}
+
+variable "keycloak_client_url" {
+  description = "Keycloak client URL"
+  type        = string
+
+  validation {
+    condition     = var.keycloak_client_url != null
+    error_message = "keycloak_client_url must be specified."
+  }
+}
+
+variable "keycloak_api_client_id" {
+  description = "Keycloak api client ID"
+  type        = string
+
+  validation {
+    condition     = var.keycloak_api_client_id != null
+    error_message = "keycloak_api_client_id must be specified."
+  }
+}
+
+variable "keycloak_web_client_id" {
+  description = "Keycloak web client ID"
+  type        = string
+
+  validation {
+    condition     = var.keycloak_web_client_id != null
+    error_message = "keycloak_web_client_id must be specified."
+  }
+}
+
+variable "keycloak_realm" {
+  description = "Keycloak realm name"
+  type        = string
+
+  validation {
+    condition     = var.keycloak_realm != null
+    error_message = "keycloak_realm must be specified."
+  }
 }
