@@ -133,3 +133,31 @@ module "cdn_assets" {
   enable_waf     = false
   waf_web_acl_id = null
 }
+
+# ==============================================================================
+# Mail (SES)
+# ==============================================================================
+module "mail" {
+  source = "../../modules/mail"
+
+  domain_name = var.domain_name
+  zone_id     = module.domain.zone_id
+
+  # 個別メールアドレスの検証
+  from_email_addresses = [
+    "noreply@${var.domain_name}",
+    "support@${var.domain_name}"
+  ]
+
+  # DKIM有効化
+  enable_dkim = true
+
+  # Configuration Set (送信トラッキング)
+  enable_configuration_set = true
+  configuration_set_name   = "${var.name_prefix}-config-set"
+
+  # SNS通知 (開発環境では無効化も可)
+  enable_sns_notifications = true
+  sns_topic_name           = "${var.name_prefix}-ses-notifications"
+}
+
