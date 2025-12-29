@@ -21,13 +21,13 @@ variable "private_subnet_ids" {
 variable "db_name" {
   description = "データベース名"
   type        = string
-  default     = "app_db"
+  sensitive   = true
 }
 
 variable "db_username" {
   description = "マスターユーザー名"
   type        = string
-  default     = "postgres"
+  sensitive   = true
 }
 
 variable "db_password" {
