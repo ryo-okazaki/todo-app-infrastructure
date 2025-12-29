@@ -89,9 +89,23 @@ resource "aws_s3_bucket_public_access_block" "logs" {
   restrict_public_buckets = true
 }
 
-# ALBがログを書き込めるようにするためのバケットポリシー
-data "aws_caller_identity" "current" {}
-data "aws_elb_service_account" "main" {} # ALBのAWS公式アカウントIDを取得
+# ライフサイクルポリシー（ログの自動削除）
+resource "aws_s3_bucket_lifecycle_configuration" "logs" {
+  bucket = aws_s3_bucket.logs.id
+
+  rule {
+    id     = "delete_old_logs"
+    status = "Enabled"
+
+    expiration {
+      days = 90 # 90日後に削除
+    }
+
+    # noncurrent_version_expiration {
+    #   days = 30
+    # }
+  }
+}
 
 resource "aws_s3_bucket_policy" "logs_alb" {
   depends_on = [
