@@ -76,7 +76,7 @@ resource "aws_lb_listener" "http" {
 }
 
 # ------------------------------------------------------------------------------
-# Listener: HTTPS (443)
+# Listener: HTTPS (443) with CloudFront Header Validation
 # ------------------------------------------------------------------------------
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.this.arn
@@ -85,15 +85,41 @@ resource "aws_lb_listener" "https" {
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06" # TLS 1.3対応の最新ポリシー
   certificate_arn   = var.acm_certificate_arn
 
-  # デフォルトアクション: まだアプリがないので「固定レスポンス」を返す
-  # (後でECSサービス作成時に、パスベースルーティングなどで上書き・優先されます)
+  # デフォルトアクション: CloudFrontヘッダーがない場合は403
   default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Forbidden - Direct access not allowed"
+      status_code  = "403"
+    }
+  }
+}
+
+# ------------------------------------------------------------------------------
+# Listener Rule: Validate CloudFront Custom Header
+# ------------------------------------------------------------------------------
+resource "aws_lb_listener_rule" "cloudfront_validated" {
+  count = var.cloudfront_custom_header_name != null ? 1 : 0
+
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 1
+
+  action {
     type = "fixed-response"
 
     fixed_response {
       content_type = "text/plain"
       message_body = "Service Unavailable (No Target Group configured yet)"
       status_code  = "503"
+    }
+  }
+
+  condition {
+    http_header {
+      http_header_name = var.cloudfront_custom_header_name
+      values           = [var.cloudfront_custom_header_value]
     }
   }
 }
