@@ -22,3 +22,8 @@ output "nat_gateway_public_ips" {
     description = "List of Public IPs of NAT Gateways"
     value       = aws_eip.nat[*].public_ip
 }
+
+output "service_discovery_namespace_arn" {
+  description = "Service Discovery Namespace ARN"
+  value       = aws_service_discovery_private_dns_namespace.this.arn
+}
