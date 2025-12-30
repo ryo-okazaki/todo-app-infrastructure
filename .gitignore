@@ -1,6 +1,7 @@
 .idea
 .env
 tmp/
+**tmp**
 
 **.tfbackend
 **.terraform/
