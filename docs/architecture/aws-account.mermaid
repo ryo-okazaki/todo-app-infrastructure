@@ -1,0 +1,41 @@
+flowchart LR
+%% Root
+    Org["AWS Organization<br/>Control Tower 有効"]
+
+%% Management Account（OU外）
+    Org --> Mgmt["管理アカウント<br/>Control Tower 管理"]
+
+%% Governance OUs
+    Org --> AuditOU["Audit OU"]
+    Org --> SecurityOU["Security OU"]
+    Org --> NetworkOU["Network OU"]
+    Org --> SharedSvcOU["Shared Service OU"]
+
+    AuditOU --> AuditAcct["監査アカウント"]
+    SecurityOU --> SecurityAcct["セキュリティアカウント"]
+    NetworkOU --> DNSAcct["DNS アカウント"]
+    SharedSvcOU --> SharedAcct["共有アカウント<br/>Terraform Remote Backend"]
+
+%% Product OUs
+    Org --> ProductOU["Product OU"]
+
+    ProductOU --> AuthProductOU["Auth Product OU"]
+    ProductOU --> TodoProductOU["ToDo App OU"]
+
+%% Product Accounts（prodのみ）
+    AuthProductOU --> AuthProd["Auth prod"]
+    TodoProductOU --> TodoProd["ToDo prod"]
+
+%% Logical relations
+    SharedAcct --> AuthProd
+    SharedAcct --> TodoProd
+
+    DNSAcct --> AuthProd
+    DNSAcct --> TodoProd
+
+%% Styles
+    classDef ou fill:#E3F2FD,stroke:#1565C0,stroke-width:1px;
+    classDef account fill:#FFF8E1,stroke:#FF8F00,stroke-width:1px;
+
+    class AuditOU,SecurityOU,NetworkOU,SharedSvcOU,ProductOU,AuthProductOU,TodoProductOU ou
+    class Mgmt,AuditAcct,SecurityAcct,DNSAcct,SharedAcct,AuthProd,TodoProd account
