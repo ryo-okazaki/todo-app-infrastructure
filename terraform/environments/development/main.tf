@@ -47,7 +47,7 @@ module "database" {
 }
 
 module "domain" {
-  source = "../../modules/domain"
+  source = "../../modules/dns"
 
   domain_name    = var.domain_name
   parent_zone_id = var.parent_zone_id # ドメイン管理アカウントにある親ゾーンID
