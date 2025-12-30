@@ -1,6 +1,12 @@
 ############################
 # Common Modules
 ############################
+TF_DEV_DIR=terraform/environments/development
+TF_DEV_VARS=-var-file=terraform.tfvars
+
+############################
+# Common Modules
+############################
 tf-fmt-mods:
 	terraform -chdir=terraform/modules fmt -recursive
 
@@ -8,25 +14,25 @@ tf-fmt-mods:
 # Development Environment
 ############################
 tf-init-dev:
-	terraform -chdir=terraform/environments/development init -backend-config=development.tfbackend
+	terraform -chdir=$(TF_DEV_DIR) init -backend-config=development.tfbackend
 
 tf-fmt-dev:
-	terraform -chdir=terraform/environments/development fmt
+	terraform -chdir=$(TF_DEV_DIR) fmt
 
 tf-vali-dev:
-	terraform -chdir=terraform/environments/development validate
+	terraform -chdir=$(TF_DEV_DIR) validate
 
 tf-plan-dev:
-	terraform -chdir=terraform/environments/development plan -var-file=terraform.tfvars
+	terraform -chdir=$(TF_DEV_DIR) plan $(TF_DEV_VARS)
 
 tf-apply-dev:
-	terraform -chdir=terraform/environments/development apply -var-file=terraform.tfvars
+	terraform -chdir=$(TF_DEV_DIR) apply $(TF_DEV_VARS)
 
 tf-destroy-dev:
-	terraform -chdir=terraform/environments/development destroy -var-file=terraform.tfvars
+	terraform -chdir=$(TF_DEV_DIR) destroy $(TF_DEV_VARS)
 
 tf-out-dev:
-	terraform -chdir=terraform/environments/development output
+	terraform -chdir=$(TF_DEV_DIR) output
 
 tf-state-dev:
-	terraform -chdir=terraform/environments/development state list
+	terraform -chdir=$(TF_DEV_DIR) state list
