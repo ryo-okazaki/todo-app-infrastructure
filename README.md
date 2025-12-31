@@ -147,9 +147,9 @@ make tf-destroy-dev
 
 ## 関連リポジトリ
 
-- [todo-app-next](../todo-app-next): フロントエンド（Next.js）
-- [todo-app-express](../todo-app-express): バックエンド（Express）
-- [app-authentication](../app-authentication): 共通認証基盤（Keycloak）
+- [todo-app-frontend](https://github.com/ryo-okazaki/todo-app-frontend): フロントエンド（Next.js）
+- [todo-app-backend](https://github.com/ryo-okazaki/todo-app-backend): バックエンド（Express）
+- [common-auth-system](https://github.com/ryo-okazaki/common-auth-system): 共通認証基盤（Keycloak）
 
 ## アーキテクチャ構成図
 
