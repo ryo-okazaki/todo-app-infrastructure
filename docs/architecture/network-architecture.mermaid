@@ -6,6 +6,7 @@ graph TB
     classDef az fill:#fff,stroke:#d86613,stroke-dasharray: 3 3,color:#000
     classDef publicSubnet fill:#e7f2f1,stroke:#00a78e,color:#000
     classDef privateSubnet fill:#fdf3e5,stroke:#d86613,color:#000
+    classDef databaseSubnet fill:#ffe6e6,stroke:#c41e3a,color:#000
     classDef service fill:#fff,stroke:#232f3e,stroke-width:2px,color:#000
     classDef dns fill:#e6f7ff,stroke:#0073bb,stroke-width:2px,color:#000
     classDef cdn fill:#8c4fff,stroke:#fff,stroke-width:2px,color:#fff
@@ -40,9 +41,12 @@ graph TB
                     ALB_B1["ALB Node"]:::service
                     NAT_B1["NAT Gateway"]:::service
                 end
-                subgraph Priv_Sub_B1 ["Private Subnet"]
+                subgraph Priv_Sub_B1 ["Private Subnet (Compute)"]
                     class Priv_Sub_B1 privateSubnet
                     KC_Fargate_1["ECS Fargate<br/>(Keycloak)"]:::service
+                end
+                subgraph DB_Sub_B1 ["Database Subnet"]
+                    class DB_Sub_B1 databaseSubnet
                     RDS_KC_Primary[("RDS Primary<br/>(Keycloak)")]:::service
                 end
             end
@@ -54,9 +58,12 @@ graph TB
                     ALB_B2["ALB Node"]:::service
                     NAT_B2["NAT Gateway"]:::service
                 end
-                subgraph Priv_Sub_B2 ["Private Subnet"]
+                subgraph Priv_Sub_B2 ["Private Subnet (Compute)"]
                     class Priv_Sub_B2 privateSubnet
                     KC_Fargate_2["ECS Fargate<br/>(Keycloak)"]:::service
+                end
+                subgraph DB_Sub_B2 ["Database Subnet"]
+                    class DB_Sub_B2 databaseSubnet
                     RDS_KC_Standby[("RDS Standby<br/>(Keycloak)")]:::service
                 end
             end
@@ -103,10 +110,13 @@ graph TB
                     ALB_A1["ALB Node<br/>⚠️ CF Prefix List Only"]:::service
                     NAT_A1["NAT Gateway"]:::service
                 end
-                subgraph Priv_Sub_A1 ["Private Subnet"]
+                subgraph Priv_Sub_A1 ["Private Subnet (Compute)"]
                     class Priv_Sub_A1 privateSubnet
                     FE_Fargate_1["ECS Fargate<br/>(Next.js) + SC"]:::service
                     BE_Fargate_1["ECS Fargate<br/>(Express) + SC"]:::service
+                end
+                subgraph DB_Sub_A1 ["Database Subnet"]
+                    class DB_Sub_A1 databaseSubnet
                     RDS_App_Primary[("RDS Primary<br/>(App)")]:::service
                 end
             end
@@ -118,10 +128,13 @@ graph TB
                     ALB_A2["ALB Node<br/>⚠️ CF Prefix List Only"]:::service
                     NAT_A2["NAT Gateway"]:::service
                 end
-                subgraph Priv_Sub_A2 ["Private Subnet"]
+                subgraph Priv_Sub_A2 ["Private Subnet (Compute)"]
                     class Priv_Sub_A2 privateSubnet
                     FE_Fargate_2["ECS Fargate<br/>(Next.js) + SC"]:::service
                     BE_Fargate_2["ECS Fargate<br/>(Express) + SC"]:::service
+                end
+                subgraph DB_Sub_A2 ["Database Subnet"]
+                    class DB_Sub_A2 databaseSubnet
                     RDS_App_Standby[("RDS Standby<br/>(App)")]:::service
                 end
             end
