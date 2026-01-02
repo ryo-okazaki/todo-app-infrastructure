@@ -33,9 +33,9 @@ resource "aws_subnet" "public" {
 
 # --- Private Subnets ---
 resource "aws_subnet" "private" {
-  count             = length(var.private_subnet_cidrs)
+  count             = length(var.compute_private_subnet_cidrs)
   vpc_id            = aws_vpc.this.id
-  cidr_block        = var.private_subnet_cidrs[count.index]
+  cidr_block        = var.compute_private_subnet_cidrs[count.index]
   availability_zone = var.azs[count.index]
 
   tags = {
@@ -105,7 +105,7 @@ resource "aws_nat_gateway" "this" {
 # --- Private Route Tables (AZごとに作成) ---
 # NAT Gatewayが各AZにあるため、ルートテーブルも分ける必要があります
 resource "aws_route_table" "private" {
-  count  = length(var.private_subnet_cidrs)
+  count  = length(var.compute_private_subnet_cidrs)
   vpc_id = aws_vpc.this.id
 
   route {
@@ -120,7 +120,7 @@ resource "aws_route_table" "private" {
 
 # Route Table Association (Private)
 resource "aws_route_table_association" "private" {
-  count          = length(var.private_subnet_cidrs)
+  count          = length(var.compute_private_subnet_cidrs)
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[count.index].id
 }

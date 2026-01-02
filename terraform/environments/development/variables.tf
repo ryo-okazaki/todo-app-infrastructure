@@ -39,12 +39,12 @@ variable "public_subnet_cidrs" {
   }
 }
 
-variable "private_subnet_cidrs" {
+variable "compute_private_subnet_cidrs" {
   description = "List of CIDR blocks for private subnets"
   type        = list(string)
 
   validation {
-    condition     = length(var.private_subnet_cidrs) == length(var.availability_zones)
+    condition     = length(var.compute_private_subnet_cidrs) == length(var.availability_zones)
     error_message = "The number of private_subnet_cidrs must match the number of availability_zones."
   }
 }

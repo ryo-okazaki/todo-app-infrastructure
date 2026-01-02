@@ -18,7 +18,7 @@ variable "public_subnet_cidrs" {
   type        = list(string)
 }
 
-variable "private_subnet_cidrs" {
+variable "compute_private_subnet_cidrs" {
   description = "private subnetのCIDRリスト"
   type        = list(string)
 }
