@@ -49,6 +49,16 @@ variable "private_subnet_cidrs" {
   }
 }
 
+variable "database_private_subnet_cidrs" {
+  description = "List of CIDR blocks for database subnets"
+  type        = list(string)
+
+  validation {
+    condition     = length(var.database_private_subnet_cidrs) == length(var.availability_zones)
+    error_message = "The number of database_subnet_cidrs must match the number of availability_zones."
+  }
+}
+
 variable "db_name" {
   description = "データベース名"
   type        = string

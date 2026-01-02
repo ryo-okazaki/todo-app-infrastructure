@@ -13,8 +13,8 @@ variable "vpc_cidr" {
   type        = string
 }
 
-variable "private_subnet_ids" {
-  description = "DBを配置するプライベートサブネットのIDリスト"
+variable "database_subnet_ids" {
+  description = "DBを配置する専用データベースサブネットのIDリスト"
   type        = list(string)
 }
 

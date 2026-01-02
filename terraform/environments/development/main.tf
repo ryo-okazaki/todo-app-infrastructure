@@ -24,6 +24,7 @@ module "network" {
   # subnet CIDR はAZごとに1つずつ指定
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
+  database_private_subnet_cidrs = var.database_private_subnet_cidrs
 
   api_container_domain_suffix = var.api_container_domain_suffix
 }
@@ -36,7 +37,7 @@ module "database" {
   # networkモジュールのOutputを利用
   vpc_id             = module.network.vpc_id
   vpc_cidr           = module.network.vpc_cidr_block
-  private_subnet_ids = module.network.private_subnet_ids
+  database_subnet_ids = module.network.database_subnet_ids
 
   # DB設定
   instance_class = "db.t3.micro" # 開発用なので最小
