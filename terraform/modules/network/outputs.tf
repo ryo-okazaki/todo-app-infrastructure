@@ -18,6 +18,11 @@ output "private_subnet_ids" {
   value       = aws_subnet.private[*].id
 }
 
+output "database_subnet_ids" {
+  description = "List of Database Subnet IDs"
+  value       = aws_subnet.database[*].id
+}
+
 output "nat_gateway_public_ips" {
   description = "List of Public IPs of NAT Gateways"
   value       = aws_eip.nat[*].public_ip

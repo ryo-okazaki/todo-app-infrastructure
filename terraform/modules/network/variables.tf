@@ -23,6 +23,11 @@ variable "private_subnet_cidrs" {
   type        = list(string)
 }
 
+variable "database_private_subnet_cidrs" {
+  description = "database subnetのCIDRリスト"
+  type        = list(string)
+}
+
 variable "api_container_domain_suffix" {
   description = "APIコンテナのdomain suffix"
   type        = string

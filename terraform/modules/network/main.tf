@@ -44,6 +44,19 @@ resource "aws_subnet" "private" {
   }
 }
 
+# --- Database Subnets ---
+resource "aws_subnet" "database" {
+  count             = length(var.database_private_subnet_cidrs)
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.database_private_subnet_cidrs[count.index]
+  availability_zone = var.azs[count.index]
+
+  tags = {
+    Name = "${var.name}-database-${var.azs[count.index]}"
+    Type = "Database"
+  }
+}
+
 # --- Public Route Table ---
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id
@@ -110,6 +123,24 @@ resource "aws_route_table_association" "private" {
   count          = length(var.private_subnet_cidrs)
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[count.index].id
+}
+
+# --- Database Route Tables ---
+# VPC内部の通信のみ許可
+resource "aws_route_table" "database" {
+  count  = length(var.database_private_subnet_cidrs)
+  vpc_id = aws_vpc.this.id
+
+  tags = {
+    Name = "${var.name}-database-rt-${var.azs[count.index]}"
+  }
+}
+
+# Route Table Association (Database)
+resource "aws_route_table_association" "database" {
+  count          = length(var.database_private_subnet_cidrs)
+  subnet_id      = aws_subnet.database[count.index].id
+  route_table_id = aws_route_table.database[count.index].id
 }
 
 # ------------------------------------------------------------------------------
